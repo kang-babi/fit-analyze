@@ -1,0 +1,23 @@
+[project]
+name = "fit-analyze"
+version = "0.1.0"
+description = "Garmin FIT analysis application for normalized JSON export, activity analysis, and coaching reports."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fitdecode==0.11.0",
+    "geographiclib==2.1",
+    "geopy==2.4.1",
+    "markdown-it-py==4.2.0",
+    "mdurl==0.1.2",
+    "orjson==3.11.9",
+    "Pygments==2.20.0",
+    "rich==15.0.0",
+]
+
+[project.scripts]
+fit-analyze = "export_fit:main"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"

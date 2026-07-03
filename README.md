@@ -230,6 +230,71 @@ Running activity analysis
 
 ---
 
+# Usage
+
+## Export a FIT file
+
+If you provide a filename, the command uses that file directly:
+
+```bash
+python export_fit.py export input/my_run.fit
+```
+
+If you omit the input file, the CLI prompts you to select one from `input/`:
+
+```bash
+python export_fit.py export
+```
+
+Output is written to:
+
+```text
+output/[filename]/activity.json
+```
+
+## Analyze an activity
+
+You can analyze a FIT file or exported JSON directly:
+
+```bash
+python export_fit.py analyze input/my_run.fit
+python export_fit.py analyze output/my_run/ activity.json
+```
+
+If no input is provided, the CLI prompts for a file from `input/`.
+
+Default analysis output is written to:
+
+```text
+output/[filename]/analysis.json
+```
+
+To generate a report together with analysis:
+
+```bash
+python export_fit.py analyze input/my_run.fit --report
+```
+
+This writes the report to:
+
+```text
+output/[filename]/report.md
+```
+
+To generate a report from existing analysis or activity JSON:
+
+```bash
+python export_fit.py report output/my_run/analysis.json
+```
+
+Default report output is written to:
+
+```text
+output/[filename]/report.md
+```
+
+---
+
 # Future Development
 
 Planned capabilities include:

@@ -1,6 +1,6 @@
-from fit_exporter.converter import parse_fit_file
-from export_fit import _write_output
+from __future__ import annotations
 
+from export_fit import main
 
-def main() -> None:
-    raise SystemExit("Run the package through the export_fit.py entrypoint.")
+if __name__ == "__main__":
+    main()
