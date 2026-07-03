@@ -1,0 +1,8 @@
+{
+  "python.defaultInterpreterPath": ".venv/bin/python",
+  "python.analysis.typeCheckingMode": "basic",
+  "editor.formatOnSave": true,
+  "chat.tools.terminal.autoApprove": {
+    "/home/icto/garmin-fit-exporter/.venv/bin/python": true
+  }
+}
