@@ -234,63 +234,58 @@ Running activity analysis
 
 ## Export a FIT file
 
-If you provide a filename, the command uses that file directly:
+Provide an input filename or omit it to select interactively from `input/`:
 
 ```bash
 python export_fit.py export input/my_run.fit
-```
-
-If you omit the input file, the CLI prompts you to select one from `input/`:
-
-```bash
 python export_fit.py export
 ```
 
-Output is written to:
+Exported JSON is always written (prettified) to:
 
 ```text
-output/[filename]/activity.json
+output/[filename]/[filename].json
 ```
 
 ## Analyze an activity
 
-You can analyze a FIT file or exported JSON directly:
+Analyze a FIT file or an exported activity JSON:
 
 ```bash
 python export_fit.py analyze input/my_run.fit
-python export_fit.py analyze output/my_run/ activity.json
+python export_fit.py analyze input/my_run.json
+python export_fit.py analyze
 ```
 
-If no input is provided, the CLI prompts for a file from `input/`.
-
-Default analysis output is written to:
+Analysis output is always written (prettified) to:
 
 ```text
-output/[filename]/analysis.json
+output/[filename]/[filename].json
 ```
 
-To generate a report together with analysis:
+To generate a Markdown report together with analysis add `--report`:
 
 ```bash
 python export_fit.py analyze input/my_run.fit --report
 ```
 
-This writes the report to:
+Report output is written to:
 
 ```text
-output/[filename]/report.md
+output/[filename]/[filename].md
 ```
 
-To generate a report from existing analysis or activity JSON:
+## Generate a report from JSON
 
 ```bash
-python export_fit.py report output/my_run/analysis.json
+python export_fit.py report output/my_run/my_run.json
+python export_fit.py report
 ```
 
-Default report output is written to:
+This writes the Markdown report to:
 
 ```text
-output/[filename]/report.md
+output/[filename]/[filename].md
 ```
 
 ---

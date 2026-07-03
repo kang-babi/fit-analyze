@@ -76,47 +76,18 @@ def _build_parser() -> argparse.ArgumentParser:
 
     export_parser = subparsers.add_parser("export", help="Convert a Garmin FIT file to normalized JSON")
     export_parser.add_argument("input", nargs="?", help="Path to the .fit file")
-    export_parser.add_argument(
-        "-o",
-        "--output",
-        help="Output JSON file path",
-        default=None,
-    )
-    export_parser.add_argument(
-        "--pretty",
-        action="store_true",
-        help="Write human-readable JSON",
-    )
 
     analyze_parser = subparsers.add_parser("analyze", help="Analyze a FIT or activity JSON file")
     analyze_parser.add_argument("input", nargs="?", help="Path to a .fit or .json activity file")
     analyze_parser.add_argument(
-        "-o",
-        "--output",
-        help="Output analysis JSON file path",
-        default=None,
-    )
-    analyze_parser.add_argument(
         "--report",
-        nargs="?",
-        const="",
-        help="Also write a coaching report (optional path)",
-        default=None,
-    )
-    analyze_parser.add_argument(
-        "--pretty",
         action="store_true",
-        help="Write human-readable analysis JSON",
+        help="Also write a coaching report",
+        default=False,
     )
 
     report_parser = subparsers.add_parser("report", help="Generate a coaching report from activity or analysis JSON")
     report_parser.add_argument("input", nargs="?", help="Path to analysis JSON or normalized activity JSON")
-    report_parser.add_argument(
-        "-o",
-        "--output",
-        help="Output markdown report path",
-        default=None,
-    )
 
     return parser
 
@@ -134,44 +105,82 @@ def main() -> None:
 
     if command == "export":
         input_path = _resolve_input_path(args.input, Path("input"), [".fit"])
-        output_path = Path(args.output) if args.output else Path("output") / input_path.stem / "activity.json"
+        stem = input_path.stem
+        output_dir = Path("output") / stem
+
+        # Parse FIT and write canonical activity JSON
         activity = parse_fit_file(str(input_path))
-        _write_output(activity, output_path, bool(args.pretty))
-        print(f"Exported activity JSON to {output_path}")
+        activity_path = output_dir / f"{stem}.json"
+        _write_output(activity, activity_path, True)
+        print(f"Exported activity JSON to {activity_path}")
+
+        # Analyze and write analysis JSON and markdown report
+        analysis = analyze_activity(activity)
+        analysis_path = output_dir / f"{stem}.analysis.json"
+        _write_output(analysis, analysis_path, True)
+        report_path = output_dir / f"{stem}.md"
+        report_text = format_analysis_text(analysis)
+        write_report(report_text, report_path)
+        print(f"Wrote analysis JSON to {analysis_path}")
+        print(f"Wrote coaching report to {report_path}")
         return
 
     if command == "analyze":
         input_path = _resolve_input_path(args.input, Path("input"), [".fit", ".json"])
-        output_path = Path(args.output) if args.output else Path("output") / input_path.stem / "analysis.json"
-        activity = _maybe_load_activity(input_path)
+        stem = input_path.stem
+        output_dir = Path("output") / stem
+
+        # Load activity (from FIT or JSON). Always write a prettified activity JSON copy into output.
+        if input_path.suffix.lower() == ".fit":
+            activity = parse_fit_file(str(input_path))
+        else:
+            activity = _load_json(input_path)
+        activity_path = output_dir / f"{stem}.json"
+        _write_output(activity, activity_path, True)
+        print(f"Wrote activity JSON to {activity_path}")
+
+        # Validate and analyze
         issues = validate_activity_schema(activity)
         if issues:
             print("Warning: activity JSON has validation issues:")
             for issue in issues:
                 print(f"- {issue}")
         analysis = analyze_activity(activity)
-        _write_output(analysis, output_path, bool(args.pretty))
-        print(f"Wrote analysis JSON to {output_path}")
-        if args.report is not None:
-            report_output = Path(args.report) if args.report else Path("output") / input_path.stem / "report.md"
-            report_text = format_analysis_text(analysis)
-            write_report(report_text, report_output)
-            print(f"Wrote coaching report to {report_output}")
+
+        analysis_path = output_dir / f"{stem}.analysis.json"
+        _write_output(analysis, analysis_path, True)
+        print(f"Wrote analysis JSON to {analysis_path}")
+
+        # Always write report when analyzing
+        report_path = output_dir / f"{stem}.md"
+        report_text = format_analysis_text(analysis)
+        write_report(report_text, report_path)
+        print(f"Wrote coaching report to {report_path}")
         return
 
     if command == "report":
-        input_path = _resolve_input_path(args.input, Path("input"), [".json"])
-        output_path = Path(args.output) if args.output else Path("output") / input_path.stem / "report.md"
+        input_path = _resolve_input_path(args.input, Path("input"), [".json", ".fit"])
+        stem = input_path.stem
+        output_dir = Path("output") / stem
+
+        # Accept FIT or JSON; always write activity JSON, analysis JSON, and report
         if input_path.suffix.lower() == ".fit":
-            raise ValueError("Report command accepts activity JSON or analysis JSON only.")
-        content = _load_json(input_path)
-        if content.get("recommendations") is not None:
-            analysis = content
+            activity = parse_fit_file(str(input_path))
         else:
-            analysis = analyze_activity(content)
+            activity = _load_json(input_path)
+        activity_path = output_dir / f"{stem}.json"
+        _write_output(activity, activity_path, True)
+
+        analysis = analyze_activity(activity)
+        analysis_path = output_dir / f"{stem}.analysis.json"
+        _write_output(analysis, analysis_path, True)
+
+        report_path = output_dir / f"{stem}.md"
         report_text = format_analysis_text(analysis)
-        write_report(report_text, output_path)
-        print(f"Wrote coaching report to {output_path}")
+        write_report(report_text, report_path)
+        print(f"Wrote activity JSON to {activity_path}")
+        print(f"Wrote analysis JSON to {analysis_path}")
+        print(f"Wrote coaching report to {report_path}")
         return
 
 
